@@ -1,0 +1,1 @@
+rm -r config.properties dump.db
