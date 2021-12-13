@@ -2,6 +2,7 @@ package devicemanager
 
 import (
 	"context"
+	"etrismartfarmpoccontroller/model"
 )
 
 type task struct {
@@ -15,6 +16,8 @@ type managerKey int
 
 const (
 	DISCOVERY int = iota
+	DISCONNECTED
+	STATUSREPORT
 )
 
 const (
@@ -41,17 +44,47 @@ func run(ctx context.Context) {
 			switch t.Event {
 			case DISCOVERY:
 				p := t.Ctx.Value(managerKey(parameterKey))
-				b, err := RegisterDevice(p.(*map[string]interface{}), t.Ctx.Done())
-
+				b, err := RegisterDevice(p.(map[string]interface{}), t.Ctx.Done())
 				if err != nil {
 					continue
 				}
 
-				respCh := t.Ctx.Value(managerKey(waitResponseKey)).(chan []byte)
-				if respCh != nil {
-					// , _ := json.Marshal(map[string]interface{}{"hello": "World"})
-					respCh <- b
+				respCh, ok := t.Ctx.Value(managerKey(waitResponseKey)).(chan []byte)
+				if !ok {
+					return
 				}
+				respCh <- b
+
+			case DISCONNECTED:
+				p := t.Ctx.Value(managerKey(parameterKey))
+				b, err := DeleteDevice(p.(map[string]interface{}))
+				if err != nil {
+					continue
+				}
+
+				respCh, ok := t.Ctx.Value(managerKey(waitResponseKey)).(chan []byte)
+				if !ok {
+					return
+				}
+				respCh <- b
+				// p := t.Ctx.Value(managerKey(parameterKey))
+
+			case STATUSREPORT:
+				p := t.Ctx.Value(managerKey(parameterKey))
+				params, _ := p.(map[string]interface{})["params"].(map[string]interface{})
+				device, _ := p.(map[string]interface{})["device"].(*model.Device)
+
+				respCh, ok := t.Ctx.Value(managerKey(waitResponseKey)).(chan []byte)
+				if !ok {
+					return
+				}
+
+				b, err := ForwardMessage(device.DID, device.SID, params)
+				if err != nil {
+					respCh <- []byte(err.Error())
+				}
+
+				respCh <- b
 			}
 		}
 	}

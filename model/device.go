@@ -40,6 +40,17 @@ func (s *dbHandler) AddDevice(device *Device) error {
 
 }
 
+func (s *dbHandler) GetDeviceID(dname string) (*Device, error) {
+	var device Device
+	tx := s.db.Select("did", "sname").First(&device, "dname=?", dname)
+
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
+	return &device, nil
+}
+
 func (s *dbHandler) GetServiceForDevice(did string) (string, error) {
 	var device Device
 	tx := s.db.Select("sname").First(&device, "did=?", did)
@@ -47,5 +58,5 @@ func (s *dbHandler) GetServiceForDevice(did string) (string, error) {
 		return "", tx.Error
 	}
 
-	return device.SName, nil
+	return s.GetSID(device.SName)
 }

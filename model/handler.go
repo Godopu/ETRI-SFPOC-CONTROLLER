@@ -6,8 +6,10 @@ import (
 )
 
 type dbHandler struct {
-	db    *gorm.DB
-	cache map[string]string
+	db     *gorm.DB
+	cache  map[string]string
+	states map[string]map[string]interface{}
+	
 }
 
 func newSqliteHandler(path string) (DBHandler, error) {
@@ -18,7 +20,11 @@ func newSqliteHandler(path string) (DBHandler, error) {
 
 	db.AutoMigrate(&Device{})
 
-	return &dbHandler{db: db, cache: map[string]string{}}, nil
+	return &dbHandler{
+		db:     db,
+		cache:  map[string]string{},
+		states: map[string]map[string]interface{}{},
+	}, nil
 }
 
 // func newPostgresqlHandler(path string) (DBHandler, error) {

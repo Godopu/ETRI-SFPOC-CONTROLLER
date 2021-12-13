@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	manager "git.godopu.net/lab/etri-smartfarm-poc-controller-serial"
 )
 
 // func runBootstrap() {
@@ -116,5 +118,35 @@ func main() {
 	run, _ := devicemanager.NewManager()
 	run()
 
+	manager.AddRecvListener(devicemanager.NewRecvHandler())
+	// handler := devicemanager.NewRecvHandler()
+	manager.AddRegisterHandleFunc(devicemanager.RegisterHandler)
+	manager.AddRemoveHandleFunc(devicemanager.RemovedHandler)
+
+	go manager.Run()
+
 	http.ListenAndServe(":4000", router.NewRouter())
+
+	// for {
+	// 	fmt.Println("> ")
+	// 	var cmd string
+	// 	fmt.Scanln(&cmd)
+	// 	if cmd == "exit" {
+	// 		return
+	// 	}
+
+	// 	handler.Handle(&Temp{})
+	// }
 }
+
+// type Temp struct{}
+
+// func (*Temp) Key() interface{} {
+// 	return &struct{}{}
+// }
+
+// func (*Temp) Params() map[string]interface{} {
+// 	return map[string]interface{}{
+// 		"uuid": "DEVICE-A-UUID",
+// 	}
+// }

@@ -21,7 +21,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
+	
 }
 func NewRouter() http.Handler {
 	m := mux.NewRouter()

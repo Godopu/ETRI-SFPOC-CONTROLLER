@@ -14,13 +14,16 @@ type DBHandler interface {
 	AddDevice(device *Device) error
 	GetSID(sname string) (string, error)
 	GetServiceForDevice(did string) (string, error)
+	GetDeviceID(dname string) (*Device, error)
+	StatusCheck(did string, new map[string]interface{}) bool
 }
 
 var db DBHandler
 
 func GetDBHandler(dbtype, path string) (DBHandler, error) {
 	if db == nil {
-		return newSqliteHandler(path)
+		db, _ = newSqliteHandler(path)
+		return db, nil
 	}
 	return db, nil
 }
